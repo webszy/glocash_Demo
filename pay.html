@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>GOLCASH支付DEMO</title>
+  <style>
+    #golcash{
+      position: fixed;
+      left: 10%;
+      top:10%;
+      transform: translate(-50%,-50%);
+    }
+  </style>
+</head>
+<body>
+  <button id="pay">创建订单</button>
+  <div id="golcash" style="display:none;">
+  </div>
+  <p id="result"></p>
+  <script src="https://cdn.jsdelivr.net/npm/axios@0.18.0/dist/axios.min.js"></script>
+  <!-- 时间戳-->
+  <script>
+    window.onload=function(){
+      showResult()
+      let REQ_TIMES=Math.round(new Date().getTime()/1000)
+      document.getElementById('pay').onclick=function(){
+        let data={
+          environment: "sandbox",
+          // isDirectFollowOrder: 1,
+          receipt:'',
+          isPromotionOrder:0,
+          // isPromotionOrder: false,
+          productName: "com.h5.coins.100",
+          type: 7,
+          userId: ''
+        }
+        console.log(JSON.stringify(data))
+        axios({
+          method: 'post',
+          url:'trade/order',
+          data:JSON.stringify(data),
+          params:{session:'',gsid:''},
+          headers: {
+            'Content-Type': 'application/json;charset=UTF-8'
+          }
+        })
+        .then(res=>{
+          console.log("TCL: document.getElementById -> res", res)
+          // 从服务器获取orderId
+          if(res.data.number){
+            createScript(res.data.number)
+            document.getElementById('golcash').style.display="block"
+          }
+        })
+      }
+
+      function createScript(orderId){
+        // 文档地址 https://portal.glocash.com/zh/merchant/index/document
+        let s=document.createElement('script')
+          s.src="https://pay.glocash.com/public/gateway/js/embed.js" 
+          s.className="gc-embed-button" //按钮默认样式必须
+          s.id="payScript"
+          s.title="BUY NOW"
+          s.setAttribute('title',"BUY NOW") //按钮的显示名字  
+          s.setAttribute('d-emkey',"") //js的支付key，必须
+          s.setAttribute('d-merchant',"Famedgram") //商户名称，必须
+          s.setAttribute('d-goodsname',"10 Followers") //商品名称，必须
+          s.setAttribute('d-price',"0.99") //总金额，必须
+          s.setAttribute('d-currency',"USD") //货币类型，必须
+          s.setAttribute('d-email',"customer@glocash.com") //用户邮箱，必须
+          s.setAttribute('d-invoice',orderId) //订单号，由服务器生成
+          s.setAttribute('d-sandbox','1') 
+          s.setAttribute('d-method','C01') 
+          s.setAttribute('d-urlpost','0') 
+          s.setAttribute('d-suceess','http://192.168.1.62:5500/index.html?result=success') 
+          s.setAttribute('d-failed','http://192.168.1.62:5500/index.html?result=failed') 
+          // 这里可以使用vue的路由跳转，带上query参数，然后通过query参数判断是否支付成功
+          s.setAttribute('d-notify','/trade/glocash/notify') 
+          document.getElementById('golcash').appendChild(s)
+      }
+      function showResult(){
+        let getParams=function getURLParams(str){
+          let q={}
+          str.replace(/([^?&=]+)=([^&]+)/g,(_,k,v)=>q[k]=v)
+          return q
+        }
+        let url=window.location.href
+        let p=getParams(url)
+        if(p.result){
+          if(p.result==='success'){
+            document.getElementById('result').innerHTML="支付成功"
+          }else{
+            document.getElementById('result').innerHTML="支付失败"
+          }
+
+        }
+      }
+    }
+  
+  </script>
+ 
+</body>
+</html>
