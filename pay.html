@@ -71,13 +71,21 @@
           s.setAttribute('d-currency',"USD") //货币类型，必须
           s.setAttribute('d-email',"customer@glocash.com") //用户邮箱，必须
           s.setAttribute('d-invoice',orderId) //订单号，由服务器生成
-          s.setAttribute('d-sandbox','1') //测试环境
+          s.setAttribute('d-sandbox','1') //测试环境,如不是，需要注释掉这句
           s.setAttribute('d-method','C01') 
           s.setAttribute('d-urlpost','0') 
+          // s.setAttribute('d-pagecomp',"1") //页面将select换成input,修正某些安卓机下页面崩溃
           s.setAttribute('d-suceess','http://192.168.1.62:5500/index.html?result=success') 
           s.setAttribute('d-failed','http://192.168.1.62:5500/index.html?result=failed') 
           // 这里可以使用vue的路由跳转，带上query参数，然后通过query参数判断是否支付成功
           s.setAttribute('d-notify','/trade/glocash/notify') 
+          // 加入事件监听，防止对方服务器问题
+          s.onload=function(){
+            alert('glocash sdk is correctly loaded')
+          }
+          s.onerror=function(){
+            alert('glocash sdk is failed to load')
+          }
           document.getElementById('golcash').appendChild(s)
       }
       function showResult(){
